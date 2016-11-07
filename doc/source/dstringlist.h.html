@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
+<meta name="description" content="dstringlist.h documentation">
+<meta name="keywords" content="dstrings, programming, dynamic strings">
+<meta name="author" content="Chris Reid">
+
+<title>
+dstringlist.h
+</title>
+
+<link rel="stylesheet" type="text/css" href="light.css" title="preferred">
+<link rel="alternate stylesheet" type="text/css" href="evening.css" title="alternate1">
+<link rel="stylesheet" type="text/css" href="prettify.css">
+</head>
+
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+
+<body style="font-family:Lucida Console" style="color:#697c52" style="background-color:#E6E6FA">
+<div id="content">
+<code>
+<pre class="prettyprint">
+<!--.h or .c file contents starts here -->
+/* dstringlist.h */
+
+/* AUTHOR:  Chris Reid &lt;spikeysnack@gmail.com&gt; */
+/* LICENSE: Free for all purposes              */
+/* COPYRIGHT: 2015- Chris Reid                 */
+
+/*
+ * Put dstrings into a double linked list.
+ *
+ * The format is borrowed directly from the 
+ * linux kernel implementation of linked lists
+ * which is nearly atomic, ultra simple, and 
+ * transparent. The driver code is in a 
+ * separate file dstring_llist.h which
+ * is generic and can be repurposed
+ * for any kind of struct.
+ * 
+ * A doubly-linked list is made by embedding 
+ * the list_head structure into the struct along 
+ * with the object(s). 
+ * Then one node is initialized as the head of the list
+ * with its next and prev pointers pointing to itself. 
+ * As nodes are added linked-list style
+ * the last node's next points to the head in
+ * circular fashion. 
+ *
+ * To traverse the list you simply get next 
+ * until you come around to the list head again 
+ * and stop there by checking (next != head ).
+ *
+ * (note) append_nodelete adds the dstring into 
+ * the end of the list with the no_delete member set.
+ * In this case the dstring is not deallocated when
+ * the list is freed, but its list entry is.
+ * Otherwise the dstring is freed along with the list.
+ */
+
+
+#ifndef  DSTRINGLIST_H
+#define  DSTRINGLIST_H
+
+#include &lt;stddef.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+
+#ifndef DSTRING_H
+#include "dstring.h"
+#endif
+
+#ifndef DSTRING_LLIST_H
+#include "dstring_llist.h"
+#endif
+
+
+/************dstringlist structure defintion **********/
+
+/* a traditional linux kernel-type 
+ * double linked list with data payload
+ */
+struct dst_list
+{
+  struct list_head list;
+  dstring ds;
+  int no_delete;
+};
+
+// a type alias 
+typedef struct dst_list dstringlist;
+
+
+/*****************function defintions******************/
+
+void append_dstring( dstringlist* ptr, dstring dst);
+
+void append_dstring_nodelete( dstringlist* ptr, dstring dst);
+
+void append_string( dstringlist* ptr, const char* str, size_t len);
+
+dstringlist dstringlist_from_dstring( dstringlist* ptr, dstring ds , const char* delim);
+
+dstring find_dstring( dstringlist* ptr, dstring ds );
+
+dstringlist* dstringlist_copy( dstringlist* ptr);
+
+dstring dstringlist_join( dstringlist* ptr, dstring ds, const cstring sep );
+
+void del_dstring( dstringlist* ptr, dstring ds);
+
+void dstringlist_free( dstringlist* ptr);
+
+/*  MACROS */
+
+#define DSLISTFREE(DSL)  (dstringlist_free(DSL), (DSL) = NULL)
+
+#define NEW_DSLIST(DSL)  do {  \
+    DSL = (dstringlist*)calloc(1, sizeof(dstringlist)); \
+    INIT_LIST_HEAD(&DSL-&gt;list);\
+	} while(0)
+
+
+
+
+/***************function implementations***************/
+
+/* add dstring to list (deletable) */
+void append_dstring( dstringlist* ptr, dstring ds)
+{
+  dstringlist* dsl;
+
+  if ((!ptr) || (!ds) ) return;
+
+  dsl = (dstringlist*) calloc ( 1, sizeof( dstringlist));
+
+  if(!dsl) 
+    {
+    perror("calloc");
+    exit(1);
+    }
+  
+  dsl-&gt;ds = ds;
+  dsl-&gt;no_delete = 0;
+
+  list_add_tail( &(dsl-&gt;list), &(ptr-&gt;list) );
+} // append_dstring
+
+
+/* add dstring to list (non-deletable) */
+void append_dstring_nodelete( dstringlist* ptr, dstring ds)
+{
+  dstringlist* dsl;
+
+  if ((!ptr) || (!ds) ) return;
+
+  dsl = (dstringlist*) calloc ( 1, sizeof( dstringlist));
+
+  if(!dsl) 
+    {
+    perror("calloc");
+    exit(1);
+    }
+  
+  dsl-&gt;ds = ds;
+  dsl-&gt;no_delete = 1; // will not be freed when list is freed
+
+  list_add_tail( &(dsl-&gt;list), &(ptr-&gt;list) );
+} // append_dstring_nodelete
+
+
+
+
+/* append anonymous dstring to list */
+void append_string( dstringlist* ptr, const char* str, size_t len)
+{
+  dstringlist* dsl;
+
+  if ((!ptr) || (!str) || (!len) ) return;
+
+  dsl = (dstringlist*)calloc(1, sizeof( dstringlist));
+
+  if(!dsl) 
+    {
+    perror("calloc");
+    exit(1);
+    }
+  
+  dsl-&gt;ds = dstring_new_init( str, len ) ;
+
+  dsl-&gt;no_delete = 0;
+
+  list_add_tail( &(dsl-&gt;list), &(ptr-&gt;list) );
+
+} // append_string
+
+
+
+/* create a linked list of dstrings 
+ * from a dstring separated by delim 
+ */
+dstringlist dstringlist_from_dstring( dstringlist* ptr, dstring ds , const char* delim)
+{
+  dstringlist dsl;
+  dstring tmp;
+  char c;
+  char* str, *startp, *endp;
+  size_t ilen, count, entries, strsz;  
+
+  /* safety */
+  if (! ptr )
+	{
+	  dsl = *ptr;
+	  INIT_LIST_HEAD(&dsl.list);
+	}
+
+  if (! delim ) delim = " ";
+  
+  if (! ds) goto fin;
+
+  /* use a copy */
+  tmp = dstring_copy(ds);
+  tmp =  dstring_minimize_mem(tmp);
+
+  /* count items */
+  ilen = dstlen(tmp);
+  entries = 0;
+  count   = 0;
+
+  while( count &lt; ilen)
+	{
+	  c = tmp[count];
+	  if ( c == delim[0]) { entries++; tmp[count] = '\0';}    // replace all delim with null chars
+	  count++;	  
+	}
+
+  /* string pointers */
+  startp  = (char*)tmp;
+  endp = (char*)tmp;
+  count = 0;
+
+  while ( count++ &lt;= entries )
+	{
+	  startp = endp;
+
+	  while(*endp != '\0') endp++;
+	  
+	  strsz = endp - startp;
+
+	  if( strsz)
+		{
+		  /* allocate memory for new string */
+		  str = calloc( strsz , sizeof(char) ); 
+	  
+		  /* copy string data */
+		  str = strncpy( str, startp , strsz );
+		  
+		  /* safety */
+		  str[strsz] = '\0'; 
+
+		  /* add items to list */
+		  append_dstring( ptr, new_dstring(str) );
+
+		  free(str);
+		  /* skip null char */
+		  endp++;
+		} // if
+	  
+	} // while
+	  
+  dstring_free(tmp);
+  
+ fin:
+  return *ptr;
+
+} // dstringlist_from_dstring
+
+
+/* return a dstring from a list 
+ * separated by a separator string
+ * such as " " or "." or "/".
+ */
+dstring dstringlist_join( dstringlist* ptr, dstring ds, const cstring sep )
+{
+  dstring dsep = NULL;
+  dstringlist* iter = NULL;
+  int nosep = 0;
+
+  
+  if ((!ptr) || (!ds)) return NULL;
+    
+  if (sep) 
+	dsep = new_dstring(sep);
+  else 
+	nosep = 1;
+
+  /* free all deletable dstrings from list */
+  list_for_each_entry(iter, &(*ptr).list, list)
+    {
+	  //	  ds = dstring_fast_append( ds, iter-&gt;ds);
+	  ds = dstring_append( ds, iter-&gt;ds);
+
+	  if ( (!nosep) 
+		   && (! list_last_entry( &(iter-&gt;list),  &(*ptr).list) ) ) 
+		//		ds = dstring_fast_append(ds, dsep );	  
+		ds = dstring_append(ds, dsep );	  
+    }       
+
+
+  dstring_minimize(ds); // clean up extra memory
+  //  dstring_minimize_mem(dsl); // clean up extra memory
+
+
+return ds;
+
+} // dstringlist_join
+
+
+
+
+
+/* remove all items fron the dstringlist */
+void dstringlist_free( dstringlist* ptr)
+{
+  dstringlist* iter;
+
+  if (!ptr) return;
+
+  /* free all deletable dstrings from list */
+  list_for_each_entry(iter, &(*ptr).list, list)
+    {
+      if (! iter-&gt;no_delete )
+		{
+		  dstring_free(iter-&gt;ds);	  
+		  iter-&gt;ds = NULL;
+		}
+    }     
+
+  /* remove all items in the list */
+  while( !list_empty(&(*ptr).list) ) 
+    {
+      iter = list_entry((*ptr).list.next, dstringlist, list);
+      list_del(&iter-&gt;list);
+      free(iter);
+    }
+    
+} //dstringlist_free
+
+
+
+/* return dstring if it is in the list */
+dstring find_dstring( dstringlist* ptr, dstring ds )
+{
+
+  dstringlist* iter;
+  dstring found = NULL;
+  
+  if( (!ptr) || (!ds) )  return NULL;
+
+  /* clear all dstrings from list */
+  list_for_each_entry(iter, &(*ptr).list, list)
+    {
+	  found = iter-&gt;ds;
+	  if (found == ds ) return found; 
+    }     
+
+  return NULL;
+} // find_dstring 
+
+
+/* remove item from list */
+void del_dstring( dstringlist* ptr, dstring ds)
+{
+  dstringlist* iter;
+  dstring found;
+
+  if( (!ptr) || (!ds) )  return;
+
+  /* check all dstrings in list for ds */
+  list_for_each_entry(iter, &(*ptr).list, list)
+    {
+	  found = iter-&gt;ds;
+	  if( found == ds ) list_del(&iter-&gt;list);	  
+    }     
+
+} // del_string
+
+
+
+
+/* the nodelete flag gets copied too */
+dstringlist* dstringlist_copy( dstringlist* ptr)
+{
+  dstringlist* dsl;
+  dstringlist* iter;
+  dstring      dscpy;
+
+  if(!ptr)  return NULL;
+  
+  dsl = calloc(1, sizeof(struct dst_list) );
+  INIT_LIST_HEAD(&(dsl-&gt;list) );
+  //dsl-&gt;ds = dstring_copy(ptr-&gt;ds);  
+
+ /* check all dstrings in list for ds */
+  list_for_each_entry(iter, &(*ptr).list, list)
+    {
+	  dscpy= dstring_copy(iter-&gt;ds);
+ 	  append_dstring( dsl, dscpy);
+   }     
+
+  return dsl;
+} // dstringlist_copy
+
+
+#endif // DSTRINGLIST_H
+
+
+/*END*/
+
+
+
+/* Local Variables: */
+/* mode: c          */
+/* mode: font-lock  */
+/* tab-width:4      */
+/* End:             */
+<!--.h or .c file contents ends here -->
+</pre>
+</code>
+</div>   
+<p>
+</body>
+</html>
+
+<!-- end -->
+

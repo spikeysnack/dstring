@@ -1,0 +1,22 @@
+@import url("base.css");
+
+h1 {
+	color: #6040c0;
+}
+body {
+	color: black;
+	background-color: #00aaaa;
+	background-image: url('side.jpg');
+}
+
+img {
+    opacity: 1.0;
+    filter: alpha(opacity=100); /* For IE8 and earlier */
+}
+
+#content {
+	background-color: white;
+	opacity: 0.85;
+	filter: alpha(opacity=85);
+}
+

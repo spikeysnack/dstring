@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
+<meta name="description" content="dstrings documentation">
+<meta name="keywords" content="dstrings,programming,dynamic strings,readme">
+<meta name="author" content="chris">
+
+<title>
+<!--put .h or .c  file name here -->
+</title>
+
+<link rel="stylesheet" type="text/css" href="light.css" title="preferred">
+<link rel="alternate stylesheet" type="text/css" href="evening.css" title="alternate1">
+<link rel="stylesheet" type="text/css" href="prettify.css">
+</head>
+
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+
+<body style="font-family:Trebuchet MS" style="color:#697c52" style="background-color:#E6E6FA">
+<div id="content">
+<code>
+<pre class="prettyprint">
+<!--.h or .c file contents starts here -->

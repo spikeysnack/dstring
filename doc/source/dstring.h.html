@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
+<meta name="description" content="dstring.h documentation">
+<meta name="keywords" content="dstrings, programming, dynamic strings">
+<meta name="author" content="Chris Reid">
+
+<title>
+dstring.h
+</title>
+
+<link rel="stylesheet" type="text/css" href="light.css" title="preferred">
+<link rel="alternate stylesheet" type="text/css" href="evening.css" title="alternate1">
+<link rel="stylesheet" type="text/css" href="prettify.css">
+</head>
+
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+
+<body style="font-family:Lucida Console" style="color:#697c52" style="background-color:#E6E6FA">
+<div id="content">
+<code>
+<pre class="prettyprint">
+<!--.h or .c file contents starts here -->
+/* dstring.h */
+
+/* AUTHOR:  Chris Reid &lt;spikeysnack@gmail.com&gt; */
+/* LICENSE: Free for all purposes              */
+/* COPYRIGHT: 2016- Chris Reid                 */
+
+
+
+/* dstrings are dynamic (runtime-allocated) strings
+ * that carry their used and free size with them.
+ * (see 00README file)
+ *
+ *  [ --------------- struct  dst ---------------- ]
+ *  ____________________________________ .... _ ____
+ *  | len | free | str                        |'\0'| 
+ *  |_____|______|_______________________.... |____|
+ *                 ^
+ *                 dstring 
+ */
+
+
+#ifndef  DSTRING_H
+#define  DSTRING_H
+
+#include &lt;stddef.h&gt;
+#include &lt;stdarg.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;string.h&gt;
+#include &lt;ctype.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;assert.h&gt;
+
+
+/* maybe stdbool is gone */
+#ifndef __bool_true_false_are_defined
+typedef enum {false = 0, true = 1} bool;
+#endif
+
+/* fix long-standing flaw in strlen */
+#define strlen(S) ( (S==NULL) ? 0 : strlen(S) )
+
+
+/* from objc */
+static const bool NO    = false;
+static const bool YES   = true;
+
+
+/* these are amd_64 and x86_32 max sizes */
+/* 
+ *  size_t  max  4294967295
+ *  ssize_t max  2147483647
+*/
+
+/**
+ API HELPERS       -- these are safer to use and easier to remember
+   
+ DSDEBUG(DS)       -- print out the location and values of a dstring  
+
+ DSLOCAL_FMT(CS)  -- create a localdstring from a cstring
+                      It destroys itself at the end of function scope.
+                  
+ DSLOCAL_FMT(fmt, ...) -- DSLOCAL with printf-style format string
+
+ DSNEW( X,N )      -- return a new dstring with cstring X and memory N
+
+ DSBLANK(N)        --   return a new dstring with no string  memory N
+
+ DSFREE(DS)        --  free memory and pointer of dstring  
+
+ DSFREE_ALL(...)   -- free all in comma , separated list of dstrings
+
+ PRINT_ALL(...)    -- print multiple dstrings at once
+  
+ DSCLEAR(DS)       -- keep memory but clear string to all 0s        
+
+*/   
+
+
+/*************************************************/
+/* We need to know if we are on a 32-bit or a 64-bit architecture.
+ * The size of size_t is 4 bytes on 32 , 8 bytes on 64.  
+ * This forces the struct dst to be 24 bytes on 32-bit, 
+ * 32 bytes on 64-bit. So we pad the 32-bit version with 8 fill bytes
+ * to round out the 32 bytes.
+ * 
+ * So we set a flag based upon the compiler constants
+ * that we expect to be there.
+ */
+
+
+/* Check win, msvc , mingw */
+#if _WIN32 || _WIN64 || _MSC_VER
+   #if _WIN64
+     #define ENV64BIT 
+  #else
+    #define ENV32BIT
+  #endif
+#endif
+
+
+/* Check GCC , clang */
+#if _LP64
+    #define ENV64BIT
+#else
+    #define ENV32BIT
+#endif
+
+
+
+#ifndef ENV64BIT
+   #ifndef ENV32BIT
+   #error "Must define either ENV32BIT or ENV64BIT"
+   #endif
+#endif
+/*************************************************/
+
+
+#ifdef DEBUG
+/* any true condition refuses to compile */
+#define DIEONTRUE(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+/* example typecheck ( 4 , int ) */
+#define typecheck(x,y) {   typeof(x) T1;  typeof(y) T2; (void)(&T1 == &T2); }
+
+/* a debug macro */
+#define DSDEBUG(_DS)  fprintf( stderr ,       \
+    "DEBUG  [%s]:%d dstring  %s = %s (%zu : %zu) [%zu] \n",   \
+    __FUNCTION__,  __LINE__,  #_DS,  _DS,     \
+   dstlen(_DS), dstfree(_DS), dst_mem(_DS) )
+
+
+/* MACRO set to count args in a variadic macro (up to 10) */
+/**********************************************************/
+#define PP_NARG(...) PP_NARG_(__VA_ARGS__ , PP_RSEQ_N() )
+#define PP_NARG_(...) PP_ARG_N( __VA_ARGS__ )
+#define PP_ARG_N( _1,_2,_3,_4,_5,_6,_7,_8,_9,_10,N,... ) N
+#define PP_RSEQ_N() 10,9,8,7,6,5,4,3,2,1,0
+
+#endif
+
+
+
+
+/**********************************************************/
+/* Set max dstring to 1GB */
+#define DST_MAX (size_t)(1&lt;&lt;30) 
+
+/* a dstring type is just a char pointer
+ * but a dstring object is not the same 
+ * as a c-style string.
+ */
+typedef char* dstring;
+
+
+#ifndef _CSTRING_ // could be defined as something else (but not here ) 
+typedef char* cstring;
+#endif
+
+/*************************************************/
+/* the dst structure behind the dstring. */
+
+/* The struct is usually invisible in normal usage.
+ * It is a variable length array of char and 2 size_t 
+ * (unsigned long integers, usually) designed to be
+ * addressed by the str member and not as the 
+ * struct itself except for special utilities.
+ * This makes it look and behave like standard
+ * char arrays with a (char*) for the libc utilities.
+*/
+
+struct dst
+{
+#ifdef ENV32BIT
+  size_t fill[2]; // makes it same size
+#endif
+  size_t len;  // chars used
+  size_t free; // chars unused
+  char  str[]; // actual c-style string
+};
+
+typedef struct dst * dstptr;
+#define DSTPTR(ds)  dstptr d = (void*) (ds - sizeof (*d) )
+
+
+/**************** version info *******************/
+/* this is the only global dstring. */
+
+#define DSVERSION "1.7 02 Jan 2016" 
+
+#ifdef ENV64BIT
+     static struct dst dst_version = { sizeof(DSVERSION), 0, {DSVERSION} };
+#else
+static struct dst dst_version = { {0, 0}, sizeof(DSVERSION), 0, {DSVERSION} };
+#endif
+
+static dstring _dstring_version = dst_version.str;
+static inline dstring dstring_version(void);
+static inline dstring dstring_version(void){return _dstring_version;}
+/*************************************************/
+
+
+
+/**************** struct dst utils ***************/
+/* see each for explanations */
+
+
+static inline dstptr __dststruct (const dstring ds); // not used but here for completeness
+
+static inline size_t dst_mem          (const dstring ds); // memory size
+static inline size_t dstlen           (const dstring ds); // string length
+static inline size_t dstfree          (const dstring ds); // free   length
+static inline int    dstcheck         (const dstring ds); // integrity 
+static inline int    is_dstring       (const dstring ds); // type
+static inline int    is_blank         (const dstring ds);  // "" check 
+static inline int    is_empty         (cstring str);       // emptystring check
+
+/*************************************************/
+
+/* [internal] return dst_struct of a ds */
+static inline dstptr __dststruct( const dstring ds)
+{
+  DSTPTR(ds);
+  return d;
+}
+
+
+/* [internal] size of entire struct with string */
+static inline size_t dst_mem(const dstring ds)
+{
+  if (!ds) return 0;
+  DSTPTR(ds);
+  return d-&gt;len + d-&gt;free + sizeof(struct dst) ;
+};
+
+
+/* [public] string length of dstring-&gt;str */
+static inline size_t dstlen(const dstring ds)
+{
+  if (!ds) return 0;
+  DSTPTR(ds);
+  return d-&gt;len;
+}
+
+/* [public] free bytes in dstring-&gt;str */
+static inline size_t dstfree(const dstring ds) 
+{
+  if (!ds) return 0;
+  DSTPTR(ds);
+  return d-&gt;free;
+}
+
+/* quick consistency checks */
+
+/* [internal] check for corruption and illogic */
+static inline int dstcheck( const dstring ds)
+{
+  if (!ds) { return 1;} // degenerate case
+
+  DSTPTR(ds);
+
+  if ( (d-&gt;len + d-&gt;free) &gt; DST_MAX) return 0;  
+
+/* 32 and 64 bit differences */
+#ifdef ENV64BIT 
+#define MODULUS 16
+#else
+#define MODULUS 8
+#endif
+
+if ( (d-&gt;len + d-&gt;free) % MODULUS ) return 0; 
+
+  return 1;
+} // dstcheck
+
+/* use as alias for instance boolean */
+#define is_dstring(DS) dstcheck(DS)
+
+
+void dstring_clear(dstring ds); //forward ref
+
+static inline int is_blank ( const dstring ds )
+{
+  if ( (dstlen(ds) == 0 ) || ds[0] == '\0' )
+    {
+      dstring_clear(ds); // make sure it is cleared
+      return YES;
+    }
+  else return NO;
+}
+
+
+static inline int is_empty( cstring str )
+{
+    
+if ( is_dstring(str) )
+    {
+      return is_blank(str);
+    }
+  else
+    {
+      if (str && (str[0] != '\0') ) return NO;
+    }
+ 
+  return YES;
+}
+
+
+
+
+/************************ dstring utils **********************/
+
+/* compare dstrings
+ *
+ * Returns:
+ *     1 if d1 &gt; d2   
+ *     0 if d1 == d2  (identical size and content) 
+ *    -1 if d1 &lt; d2.
+ * d1 and d2 can have different memory allocations.
+ * if one dstring is shorter but a subset of the other,
+ * return is 1 if d1 is longer, -1 if d2 is longer.
+ */
+int dst_cmp(const dstring d1, const dstring d2);
+
+/* [public ] longer dstring check */
+int dstring_check(const dstring ds);
+
+
+/******************************/
+/** public function definitions **/
+/****************************** */
+
+/**************************/
+/** create/free dstrings **/
+/**************************/
+
+/* new dstring with init string or NULL */ 
+dstring new_dstring_init(const void *p, size_t len);
+/* aliases -- either form works*/
+#define dstring_new_init new_dstring_init   
+
+
+/* new dstring from c-style string */
+dstring  new_dstring(const cstring cs) ;
+#define dstring_new  new_dstring
+
+#define  DSNEW( X,N )  new_dstring_init(X, N)
+#define  DSBLANK(N) new_dstring_init("", N)
+#define  DSNULL  ((dstring) 0)
+#define  DSARGLISTEND  ((dstring) NULL-1)
+    
+/* new string of len 0 */
+dstring  emptydstring(void);
+
+/* copy with same string and len and free */
+dstring dstring_copy(const dstring ds);
+#define copy_dstring dstring_copy
+
+/* free memory*/
+void dstring_free(dstring ds);
+#define free_dstring dstring_free
+// good habit
+
+#define DSFREE(DS)  (dstring_free(DS), (DS) = DSNULL )
+
+
+
+#define DSFREE_ALL(...)  do{ int i = 0;   \
+  dstring dsarr[] = { __VA_ARGS__ , DSARGLISTEND}; \
+  while( dsarr[i]!= DSARGLISTEND ) { DSFREE(dsarr[i] ); dsarr[i]= DSNULL;  i++;} \
+  }while(0);
+
+
+
+#define PRINT_ALL(...)  do{ int i = 0;   \
+  dstring dsarr[] = { __VA_ARGS__ , DSARGLISTEND}; \
+  while(dsarr[i] != DSARGLISTEND) {printf( "%s ", dsarr[i] );  i++;}	\
+  }while(0)
+
+
+
+
+
+/** alter strings **/
+
+/* make string zero length -- memory stays same */
+void dstring_clear(dstring ds);
+#define clear_dstring dstring_clear
+#define DSCLEAR(DS)   dstring_clear((dstring) DS)
+/* make all chars zeroes. adjust len=0, free=all */
+void dstring_clear(dstring ds); 
+
+/* zero out the free portion; keep string; len = same free=same*/
+void dstring_clear_free(dstring ds); 
+
+
+
+/* reallocate more mem for string storage -- string stays same, free added to */
+dstring dstring_addmem(dstring ds, size_t addlen);
+
+/* take from free, give to len, addmem if necessary */
+dstring dstring_lengthen( dstring ds, size_t len );
+
+/* take from len, give to free , not less than strlen(ds) */
+dstring dstring_shorten( dstring ds, size_t len );
+
+/* return new string truncated to n chars */
+dstring dstring_truncate( dstring ds, size_t n );
+
+/* return new string constisting of start (0-based) to end chars */
+dstring dstring_slice( dstring ds, size_t start, size_t end );
+#define dstring_range  dstring_slice
+
+/* take from len to length of string, give to free (no mem ops) */
+void dstring_minimize(dstring ds);
+#define minimize_dstring dstring_minimize
+
+/* string mem truncated to length of string, free zeroed */
+dstring dstring_minimize_mem(dstring ds);
+
+/* transfer from free to len or add memory if needed */
+dstring dstring_resize ( dstring ds , size_t newlen );
+#define resize_dstring dstring_resize
+
+/* transfer sz bytes from free to len  (INTERNAL)*/
+void dstring_free_to_len( dstring ds, size_t sz) ;
+
+/* append a c-style string */
+dstring  dstring_append( dstring dsa, const cstring str );
+
+/* append a c-style string quickly, without malloc unless needed*/
+dstring  dstring_fast_append( const dstring ds, const cstring str );
+
+
+/* append a dstring wrapper for above dstring_append */
+dstring  dstring_append_dstring( dstring dsa, const dstring dsb );
+
+dstring dstring_append_multiple( int n, dstring dsa, const dstring dsb, ...);
+
+
+/* sscanf for dstrings */
+inline __attribute__ ((__gnu_inline__)) int dsscanf (dstring ds, const cstring fmt, ...)
+  __attribute__ ((format (scanf, 2, 3))); 
+#define scan_from_dstring dsscanf 
+
+
+/* snprintf for dstrings */
+inline __attribute__ ((__gnu_inline__)) int dsprintf (dstring ds, size_t sz, const cstring fmt, ...)
+  __attribute__ ((format (printf, 3, 4))); 
+#define print_to_dstring dsprintf
+
+#endif // DSTRING_H
+
+/* other includes */
+#ifndef DSLOCALTRING_H
+#include "localdstring.h"
+#endif
+
+#ifndef DSTRING_UTILS_H
+#include "dstring_utils.h"
+#endif
+
+
+/*END*/
+<!--.h or .c file contents ends here -->
+</pre>
+</code>
+</div>   
+<p>
+</body>
+</html>
+
+<!-- end -->
+

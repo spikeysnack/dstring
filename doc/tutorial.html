@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
+<meta name="description" content="dstrings README">
+<meta name="keywords" content="dstrings,programming,dynamic strings,readme">
+<meta name="author" content="chris" >
+
+<title>Tutorial</title>
+
+<link rel="stylesheet" type="text/css" href="light.css" title="preferred">
+<link rel="alternate stylesheet" type="text/css" href="evening.css" title="alternate1">
+<link rel="stylesheet" type="text/css" href="prettify.css">
+</head>
+
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+
+<body style="font-family:Trebuchet MS" style="color:#697c52" style="background-color:#E6E6FA">
+<div id="content">
+<img src="dstrings.png" alt="dstrings" style="font-family:Lucida Sans Unicode" color="#697c52" font-style="" italic="" font-size="30px">
+
+<h1>
+DSTRINGS <br> 
+A Dynamic Strings Library
+</h1>
+
+<p>
+<div>
+<table>
+  <tbody><tr>
+    <td>Programmer:</td>
+    <td>Chris Reid</td> 
+  </tr>
+  <tr>
+    <td>Year:</td>
+    <td>2015</td> 
+  </tr>
+
+  <tr>
+    <td>Version:</td>
+    <td>1.5</td> 
+  </tr>
+  <tr>
+    <td>contact:</td>
+    <td>spikeysnack@gmail.com</td>
+  </tr>
+</tbody></table>
+</div>
+
+<br>
+
+<h2>TUTORIAL</h2>
+
+<h3>
+  A very basic tutorial in the use of dstrings.
+<p> 
+
+<p>
+</h3>
+<p>
+
+We are going to build a simple program to echo <br> 
+strings backwards from the command line. <br> 
+Let's call it recho ( reverse echo ). <br> 
+
+First, we know that the C main function <br> 
+has the following standard signature: <br> 
+
+<pre class="prettyprint">
+int main ( int argc, char** argv , char** env);
+</pre>
+
+This means we have access in our program <br> 
+to the number of arguments given, the  <br> 
+strings themselves, and any necessary environment variables. <br> 
+The strings are created in the cstring array argv as usual. <br> 
+So we already have a forward  array of cstrings. <br> 
+We need to either: <br> 
+<ol> 
+<li>print it out reversed,
+<li>make a reverse array and print that out.
+</ol>
+We will take the second option. <br> 
+
+Let's start with a basic C program skeleton: <br> 
+
+<pre class="prettyprint">
+#include &lt;stlib.h&gt;
+#include &lt;stdio.h&gt;
+#include "dstring.h"
+
+int main ( int argc, char** argv , char** env)
+{
+
+return 0;
+}
+
+</pre>
+We have all of C to choose from, but let's just start <br> 
+by copying <pre class="prettyprint">argv[]</pre> into a dstring. Backwards. <br> 
+
+<pre class="prettyprint">
+size_t i = 0 // a counter;
+dstring bw = NULL; // start clean
+bw = DSBLANK(100); // 112 bytes ( always mult of 16)
+</pre>
+
+So we created a dstring to store our output string and <br>  
+made the decision 112 bytes was big enough. <br> 
+We now have to get the contents of <pre class="prettyprint">argv[]</pre> into  it. <br> 
+
+<pre class="prettyprint">
+
+for ( i=argc ; i > 0 ; i--)
+   bw = dstring_append( bw, argv[i] );
+</pre>
+
+Will this work?  Assume yes, for now, and  <br> 
+now let's get our new populated dstring out to  <br> 
+the screen.
+<pre class="prettyprint">
+fprintf( stdout, "%s\n" , bw); 
+</pre>
+
+That should do it. <br> 
+
+One more thing, to never forget: cleaning up. <br> 
+<pre class="prettyprint">
+DSFREE(bw);
+</pre>
+
+So the whole thing should look basically like:
+<pre class="prettyprint">
+/* recho.c */
+#include &lt;stlib.h&gt;
+#include &lt;stdio.h&gt;
+#include "dstring.h"
+
+int main ( int argc, char** argv , char** env)
+{
+  size_t i = 0; 
+  dstring bw = NULL; 
+  bw = DSBLANK(100); 
+  for ( i=argc ; i > 0 ; i--)
+    bw = dstring_append( bw, argv[i] );
+  fprintf( stdout, "%s\n" , bw); 
+  DSFREE(bw);
+  return 0;
+}
+</pre>
+
+Compile with the dstring library:<br>
+<code>
+gcc -o recho recho.c -ldstring
+</code>
+<p>
+Does it work like you thought it would? <br>
+See if you can improve on it, like checking for arguments <br>
+or making sure you do not exceed the given string length, etc.<br>
+There is an example program in the source distribution.<br>
+
+<div>
+<table>
+  <tbody><tr>
+    <td><a href="README.html"> Readme </a> </td>
+    <td><a href="dstringsAPI.html"> API </a> </td>
+    <td><a href="dstring_utilsAPI.html"> Utils </a></td>
+    <td><a href="source/index.html"> Source </a></td>
+  </tr>
+ </tbody>
+</table>
+</div>   
+<p>
+</body>
+</html>

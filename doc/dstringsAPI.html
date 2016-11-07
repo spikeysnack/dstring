@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en-US" >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
+<meta name="description" content="dstrings API">
+<meta name="keywords" content="dstrings,programming,dynamic strings">
+<meta name="author" content="chris" >
+
+<title>dstrings API</title>
+
+<link rel="stylesheet" type="text/css" href="light.css" title="preferred">
+<link rel="alternate stylesheet" type="text/css" href="evening.css" title="alternate1">
+<link rel="stylesheet" type="text/css" href="prettify.css">
+</head>
+
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+
+<body  style="font-family:Trebuchet MS" style="color:#697c52" style="background-color:#E6E6FA">
+<div id="content">
+<img src="dstrings.png" alt="dstrings" style="font-family:Lucida Sans Unicode" color="#697c52" font-style="" italic="" font-size="30px">
+
+<h1>
+DSTRINGS <br> 
+A Dynamic Strings Library
+</h1>
+<p>
+</p>
+<div>
+<table>
+  <tbody><tr>
+    <td>Programmer:</td>
+    <td>Chris Reid</td> 
+  </tr>
+  <tr>
+    <td>Year:</td>
+    <td>2015</td> 
+  </tr>
+
+  <tr>
+    <td>Version:</td>
+    <td>1.5</td> 
+  </tr>
+
+  <tr>
+    <td>contact:</td>
+    <td>spikeysnack@gmail.com</td>
+  </tr>
+</tbody></table>
+</div>
+
+<br>
+
+<h1>API</h1>
+
+<h2> CREATION / DESTRUCTION</h2>
+
+<pre class="prettyprint">
+
+<font size="1">
+  /* define dstring pointers */
+  dstring ds1, ds2, ds3, ds4;
+  dstring ds5, ds6, ds7, ds8;
+  
+  /* pointer safety first */
+  ds1 = ds2 = ds3 = ds4 = NULL;
+  ds5 = ds6 = ds7 = ds8 = NULL;
+
+</font>  
+  
+
+  /* instantiate it with a c-style string */
+  ds1 = new_dstring("this is a dstring from a cstring");
+
+  /* generate a dstring in memory initiated with 112 bytes 
+    (memory allocations alway rounds up to multiples of 16) */
+    
+  ds2 = dstring_new_init("this is dynamaically allocated" , 100); 
+  
+  /* generate a dstring of size = 16, all '\0' */
+  ds3 = emptydstring();
+
+  /* API helpers */
+  
+  /* same as dstring_new_init */
+  ds5 = DSNEW( "Another way to make one", 64 );
+
+  /* same as dstring_new_init("", 64) */
+  ds6 = DSBLANK(64);  
+
+  /* copies dstring with same length */
+  ds7 =  dstring_copy( ds2);  // dsdup is an alias for dstring_copy 
+
+  ds8 = ds7;  /* shallow pointer copy -- ds8 points to same memory as ds7 */
+
+  /* local-function scoped dstring with printf-style format -
+     dstring is allocated on the stack (not the heap) 
+    and gets destroyed at the return of the function */ 
+  localdstring lds = DSLOCAL_FMT( "%d. This is a %s dstring \n" , 8, "formatted");
+
+  /* manual destruction */
+  ds8 = NULL; /* don't leave stray pointers lying around */
+  dstring_free(ds7); /* free memory */
+  ds7 = NULL;  /* clear pointer for safety */
+
+ /* free and null dstring macros */ 
+  DSFREE(ds7)  /* frees memory and nulls pointer*/
+
+  /* frees/nulls multiple dstrings at one time */
+  DSFREE_ALL(ds1, ds2, ds3, ds4 ,ds5 , ds6 ) 
+
+
+</pre>
+
+
+<h2>INSPECTION </h2>
+
+
+<pre class="prettyprint">
+
+dstring ds1 = new_dstring("ABCDEFGHIJ");
+
+size_t len  = dstlen(ds1)  ; /* 10 */
+size_t free = dstfree(ds1) ; /*  6 */
+size_t mem  = dst_mem(ds1) ; /* 32 */
+
+/* quick check for integrity */
+if ( ! dstcheck(ds) ) 
+{ 
+  printf( "BAD DSTRING\n"); 
+}
+else 
+{ 
+  ... 
+}
+
+</pre>
+
+
+<h2>UTILITIES</h2>
+
+<pre class="prettyprint">
+
+/* Zeroes dstring, len = 0, free=all memsize = same   */
+void dstring_clear(dstring ds) 
+DSCLEAR(ds)  /* alias for dstring_clear(ds) */
+
+/* Zeroes free, len = same, free=same  memsize = same */
+void dstring_clear_free(dstring ds) 
+
+/* reallocate more mem for string storage -- 
+   string stays same, free added to --
+   (usually called automatically when needed) */
+dstring dstring_addmem(dstring ds, size_t addlen);
+
+
+/* copy at most n chars of a string, or 
+the whole string if n > dstlen(ds)  */
+
+dstring dsndup( dstring ds, size_t n );
+
+
+/* return new string consisting of start (1) to end chars */
+dstring dstring_slice( dstring ds, size_t start, size_t end );
+dstring_range  /* alias for dstring_slice */
+
+
+/*  make len = strlen(d->str) , adjust free , memsize=same */
+void dstring_minimize(dstring ds);
+minimize_dstring /* alias for dstring_minimize */
+
+
+/* string mem truncated to length of string, 
+   free=minimum mem=minimum */
+
+dstring dstring_minimize_mem(dstring ds);
+
+<font size="1">
+        dstring k = new_dstring_init( "a 1k string" , 1024);
+	printf( "%zu: %zu \t [%zu]\n" , dstlen(k), dstfree(k) dst_mem(k) );
+	/* prints   11:1013   [1040] */
+
+	k = dstring_minimize_mem(k);
+	printf( "%zu: %zu \t [%zu]\n" , dstlen(k), dstfree(k) dstz_mem(k) );
+	/* prints   11:5   [32] */
+</font>
+
+/* append a c-style string */
+dstring  dstring_append( dstring dsa, const cstring str );
+
+/* append a dstring wrapper for above dstring_append */
+dstring  dstring_append_dstring( dstring dsa, const dstring dsb );
+
+/* append multiple dstrings , specify number */
+dstring dstring_append_multiple( int n, dstring dsa, const dstring dsb, ...);
+</pre>
+
+
+<h2>DSPRINTF/DSSCANF</h2>
+
+<h3>
+<font color="blue"> <b>dsprintf</font></b> and <font color="blue"><b> dsscanf</b> </font> are work-alikes of libc snprintf and sscanf for dstrings.<br>
+In fact, the compiler scans and verifies the format string just as in libc printf and scanf.
+<p>
+The thing to remember is that dsprintf <i>"Prints into a dstring "</i> from a set of variables
+via a format string
+</h3>
+
+<p> 
+<font size ="2"><i>( just like snprintf does for a cstring, printf does with stdout, and fprintf does for stderr) </font> 
+
+<h3>
+<p>and that dsscanf <i>"Scans from a dstring" into a set of variables , via a format string. </i> 
+<p>
+</h3>
+<font size="2" color = "magenta" >
+dsscanf = Scan from dstring, print to variables.
+<p>
+or
+<p> 
+dsprintf = Print into dstring, from scanned variables.
+</font>
+
+
+<pre class="prettyprint">
+/* snprintf for dstrings */
+int dsprintf (const dstring ds, size_t sz, const cstring fmt, ...)
+
+<font size="1">
+     dstring ds = DSBLANK(80);  /* make sure we have enough memory first */
+
+     int n = dsprintf( ds, dstfree(ds), "%d *  %s  = %1.5f \n" , 2 ,  "pi" , (2 * 3.14159) );
+         /*  ds <== "2 * pi = 6.28318\n" , n=18 */
+</font>
+
+
+/* sscanf for dstrings */ 
+int dsscanf( const dstring ds, const cstring fmt, ...)
+
+<font size="1">
+    float pi_f;
+    cstring pi_str;
+    dstring ds = new_dstring( "pi = 3.14159");
+
+    /* assign values to variables */
+    dsscanf( ds, "%s = %f" , pi_str , pi_f );
+    printf( "%2.8f , %s\n", pi_f , pi_str);  /*  prints  <i> 03.14159000 , pi </i> */ 
+</font>
+
+</pre>
+
+
+
+
+<h2>MISC</h2>
+<pre class="prettyprint">
+
+ PRINT_ALL(...)    /* print multiple dstrings at once */
+ 
+<font size="1">
+     PRINT_ALL( d1, d2, d3, d4, d5 );
+</font>
+
+ DSLOCAL_FMT(fmt, ...) /* create a localdstring that destroys itself at end of function:
+                      fmt is a printf-style format string. */
+<font size="1">
+   localdstring lds = DSLOCAL_FMT( "%d. This is a %s dstring \n" , 8, "formatted");
+</font>
+
+</pre>
+
+</div>
+<p>
+<div>
+<table>
+  <tbody><tr>
+    <td><a href="README.html"> Readme </a> </td>
+    <td><a href="dstringsAPI.html"> API </a> </td>
+    <td><a href="dstring_utilsAPI.html"> Utils </a></td>
+    <td><a href="source/index.html"> Source </a></td>
+  </tr>
+ </tbody> 
+</table> 
+</div>
+<p> 
+</body>
+</html>

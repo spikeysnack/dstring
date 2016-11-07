@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
+<meta name="description" content="dstrings README">
+<meta name="keywords" content="dstrings,programming,dynamic strings,readme">
+<meta name="author" content="chris" >
+
+<title>README</title>
+
+<link rel="stylesheet" type="text/css" href="light.css" title="preferred">
+<link rel="alternate stylesheet" type="text/css" href="evening.css" title="alternate1">
+<link rel="stylesheet" type="text/css" href="prettify.css">
+</head>
+
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+
+<body style="font-family:Trebuchet MS" style="color:#697c52" style="background-color:#E6E6FA">
+<div id="content">
+<img src="dstrings.png" alt="dstrings" style="font-family:Lucida Sans Unicode" color="#697c52" font-style="" italic="" font-size="30px">
+
+<h1>
+DSTRINGS <br> 
+A Dynamic Strings Library
+</h1>
+
+<p>
+<div>
+<table>
+  <tbody><tr>
+    <td>Programmer:</td>
+    <td>Chris Reid</td> 
+  </tr>
+  <tr>
+    <td>Year:</td>
+    <td>2015</td> 
+  </tr>
+
+  <tr>
+    <td>Version:</td>
+    <td>1.5</td> 
+  </tr>
+  <tr>
+    <td>contact:</td>
+    <td>spikeysnack@gmail.com</td>
+  </tr>
+</tbody></table>
+</div>
+
+<br>
+
+<h2>INTRO</h2>
+
+<h3>
+  Hello and welcome.
+  dstrings are dynamic (runtime-allocated) strings <br>
+  that carry their used and free size with them.<br>
+<p> 
+
+<p>
+  In memory they look like this:<br>
+</h3>
+<font size="4" color="blue">
+</font><pre><font size="4" color="blue">
+  [ --------------- struct dst -----------------]
+  | len | free | str          |0|               |
+  |-----| -----| -------------------------------| 
+                 ^<u>  cstring   </u>^0^<u>    space _  </u> ^ </font><figure 1=""><font size="4" color="blue">
+</font>
+</figure></pre>
+
+<p>
+<h3>  In C code they look like this:<br> </h3>
+
+<font size="4">
+<pre class="prettyprint">
+struct dst 
+{
+   size_t len; 
+   size_t free; 
+   char[] str; 
+};
+</pre>
+</font>
+
+<h3>
+  They are addressed by the <b><i>char*</i></b> member of their struct ('str' above)<br>
+  so that they behave exactly like regular c-style char strings.  <br>
+  The structure size is insignificant in memory usage compared <br>
+  to the potential size of the string data, <br>
+  but having the size and free data  greatly speeds up operations <br>
+  on the strings such as appending, truncating, resizing, and editing.<br> 
+<p>  
+  When operating on a dstring as a memory object you need to <br>
+  address its struct address and its size_t members, <br>
+  but otherwise you use it just like another C-style string. <br>
+  C sees a pointer to a character array (char*) <br>
+  and libc functions know exactly what to do with it,<br> 
+  ignoring the size_t variables before the (char[]). <br> 
+  However, an extra element of safety is introduced <br>
+  by always knowing exactly the size and free memory available<br> 
+  in the dstring, and never exceeding it, <br>
+  or reallocating enough additional memory before a buffer overrun occurs.<br>
+</p><p>
+</p></h3>
+
+<h2>LICENSE</h2>
+
+<h3>
+	Free for all C uses. No guarantees implied, or given.<br>
+	The file dstring_llist.h is based upon the linux kernel<br>
+	linked list code and is GPL freeware. <br>
+</h3>
+	
+<hr>
+
+<h2>INSTALLATION</h2>
+
+<h3>
+	Installation is by default into <br>
+	<i>/usr/local/lib</i><br> 
+	and <i>/usr/local/include</i> <br> 
+	and requires admin or sudo privileges.<br>
+	Alternatively you may put <i>libdstring.so.1</i> and its<br>
+	link <i>libdstring.so</i> and the associated headers<br>
+	<i>dstring.h, localdstring.h, dstring_llist.h, dstringlist.h</i> and <i>dstringarray.h</i><br>
+	in devel locations of your choosing. <br>
+
+	dstring_llist.h ,dstringlist.h, and dstringarray.h<br>  
+	are optional, but useful.<br>
+
+	Use a standard 'make' or 'make all' or "make install" command.<br>
+</h3>	 
+
+<font size="3" color="blue">
+<code>
+<pre>
+	Steps:<br>
+
+	-- run the shell script build.sh <br>
+	      This chooses and runs the Makefile for your OS.<br>
+
+	-- make all <br>
+
+	-- (optionally) make tests and run the tests in the test directory <br>
+           before installing system-wide. <br>
+
+	-- sudo make install <br>
+
+	-- put <b>"#include dstring.h"</b>  in your C program.<br>
+
+	-- add <i>string.o</i> to your compilation string.<br>
+
+	   <font size="3">or</font><br>
+
+	-- make libdstring.so (default)<br>
+
+	-- put libdstring.so in a dir recognized by your compiler chain	<br>
+	   or use rpath  (relative path)   <br>
+	   example in Makefile: <br>
+		<b>LIBINCLUDES=$(PWD)  <br>
+		-L -Wl,-rpath=$(LIBINCLUDES)/ </b><br>
+
+
+	-- put <i>dstring.h</i> in a dir recognized by your compiler chain <br>
+           or the current directory. <br>
+
+	-- put <b>"#include dstring.h"</b>  in your C program.<br>
+
+	-- add <i>-ldstring</i> to your compilation command.<br>
+
+	-- compile and run <br>
+
+	 <i>  libdstring.so does not know about dstringlists.<br>
+	   For those you need to include dstringlist.h and dstring_llist.h, as well.<br>
+	   Example programs are provided for testing and educational purposes.</i><br>
+</pre>
+</code>
+</font>
+
+
+<p>
+
+<h2>IMPLEMENTATION</h2>
+<h3>   
+  As in <i>figure 1</i> above, the layout is simple, yet some explanation is <br>
+  necessary to avoid common mistakes in programs.<br>
+<p>
+  The psuedo-type dstring is simply an alias for (char*).<br>
+<p>
+  It is accepted as a c-style string by all standard C string functions.<br>
+</p><p>
+<font size="2"><i>To avoid confusions in the dstring library the alias cstring is used for (char*) <br>
+  to indicate a regular pointer to an  array of chars and not a dstring.</i></font>
+<p>
+  Wrapping the character data is the following structure:<br>
+</p></h3>
+<font size="3">
+<pre class="prettyprint"> 
+struct dst 
+ {
+  size_t len; // number of chars used 
+  size_t free; // number of chars not used but available 
+  char str[]; // actual c-style string 
+ };
+</pre>
+</font>
+
+<font size="2" color="brown">  
+  For consistency, speed, and accuracy, it is mandatory that<br>
+<p>
+      1. all memory allocations occur at multiples of 16 bytes.<br>
+         Strings can be of any length, always terminated with <font color="green">'\0'</font> .<br>
+	 <i>(d-&gt;len + d-&gt;free)</i> will always be a multiple of 16.<br>
+<p> 
+      2. all memory operations on dstrings (and thus on dst structures)<br>
+         occur only on the whole dst struct and never on the str part<br>
+         only.<br>
+<p>
+      3. changing a dstring requires a recalculation of its size variables.<br>
+
+</font>
+
+<hr>
+
+<h2>NORMAL USAGE</h2>
+
+<h3>Simple, normal object-style C programming:</h3> 
+<p> 
+
+<font size="3">
+<pre class="prettyprint" >
+
+       dstring ds = new_dstring_init( "a 16 char string" , 32 );  /* 16 bytes used, 32 bytes available */
+       printf( "Use just like a char*: %s \n", ds );
+       printf( "dstring is %zu chars long with %zu free chars of space left. \n", 
+               dstlen(ds), dstfree(ds) );
+       DSFREE(ds); // A macro that nulls the pointer as well as frees the memory
+
+</pre>
+</font>
+
+<h2>ADVANCED USAGE</h2>
+
+<h3>	 
+   To get at the characters in a dstring, just access them like<br>
+   regular c-strings. 
+<p>
+ <pre class="prettyprint" >
+   mydstring[4]  // returns the 5th char of mydstring.
+</pre>
+
+<br>
+   The emptydstring() function returns  a dst structure with<br>
+   len = 0 , free=16, and str = "" (not NULL); Thus it passes<br>
+   consistency checks and is ready for a string to be appended.<br>
+          <br>
+   The utilities dstlen, dstfree, is_dstring are for general use<br>
+   dstlen should be faster than strlen. <br>
+   dst_mem returns the total size of the dst struct to help against<br>
+   comitting buffer overflows.<br>
+<br>
+   <b>sharing dstrings</b> -- the dstring type is a pointer type,<br>
+   so any dstring can be assigned to another dstring variable.<br>
+   Make sure to dettach pointers after all their accesses are done <br>
+   except for one used to free the memory -- <br>
+   this is just normal good practice in C. <br>
+   dstrings have memory garbage in them before initializaton <br>
+   so be sure to assign them to NULL at declaration , <br>
+   and instantiate them before use. <br>
+<p>
+ <h2> <b>localdstrings</b> </h2>
+<p>
+<h3>
+   Local dstrings -- stack-allocated local dstrings are provided<br>
+   for short-term use inside functions. 80% of strings in a <br>
+   program are temporary and used read-only. localdstrings are<br>
+   automatically recycled at the return of the function when it<br>
+   exits. They must not be used as return values or as parameters<br>
+   to functions, or garbage and segmentation faults will result.<br>
+   Inside the function that they are instantiated in they retain<br>
+   integrity and may be used just as normal  locally statically-allocated<br>
+   c-style strings. They use the alloca functions provided by<br>
+   gcc and clang and others. tcc and pcc may not be able to <br>
+   take advantage of local dstrings.<br>
+<br>
+   If many concatenations are to be made (building long strings) <br>  
+   use a large buffer on creation to speed up processing and to reduce<br>
+   the number of internal realloc calls. When the concatenations are<br>
+   finished (or whenever optimally convienent), call dstring_minimize_mem <br>
+   to release the free memory in the dstring.<br>
+   (See the note in <i>dstring.c</i> at the <i>dstring_append function.</i>)   <br>
+</p></h3>
+
+<font size="3" color="blue">
+<pre class="prettyprint">
+ dstring buildastring = NULL; 
+ buildastring = new_dstring_init("", 32768); // 32K to start 
+ buildastring = dstring_append(buildastring, "append this" ); 
+ ... (large number of appends ...)
+ 
+ dstring_minimize_mem( buildastring); // free unused mem
+</pre>
+
+<pre>   Use the macros DSFREE and (DSLISTFREE for lists) to assure that
+   dangling pointers are avoided.
+
+</pre>
+</font>
+
+
+<h2>DSTRINGLISTS</h2>
+<h3>   
+   dstringlists are an implementation of double-linked lists<br>
+   taken directly from the linux kernel implementation.<br>
+   A little study of the code in dstring_llist.h and dstringlist.h<br>
+   and the included test programs should suffice to utilize<br>
+   these powerful list facilites, although arrays are better for<br>
+   indexed access to containers of dstrings. All normal linked-list<br>
+   operations are provided.<br>
+</h3> 
+
+<h2>DSTRINGARRAYS</h2>
+
+<h3>
+   dstringarrays are simple structures of an array of dstring pointers and a size element. <br>
+   Additions and deletions are quick and consist of assigning <br>
+   and deassigning pointers.<br>
+   Generally you would not resize a dstringarray such as one would <br>
+   with a linked list. Some utility functions are provided.<br>
+</h3>
+
+<h2>DSTRING UTILS</h2>
+<h3>
+   An example string manipulation utility is provided: dstring_utils.<br>
+   It is both a string api and a program for working with strings. <br>
+   It provides some string functions missing from stdlib that<br>
+   are traditionally re-written by every programmer for every<br>
+   program. (Why?) Most are part of other newer languages'<br>
+   base apis by now anyway, like find, find &amp; replace, <br>
+   remove a word from string, quote &amp; unquote, chomp ,slice,truncate, <br>
+   trim, pad etc. I encourage creativity in <br>
+   discovering new and useful functions to round out the <br>
+   functionalities.<br>
+</h3>
+<h2>ALIASES &amp; MACROS</h2>
+
+
+<h3>
+   C is flexible. Extremely. So is my brain. Most of these <br>
+   functions start with the noun dstring, then an underscore,<br>
+   then a verb indicating the intent of the function. <br>
+   Accordingly, 40% of the time I reverse them. <br>
+   dstring_copy becomes copy_dstring,<br>
+   new_dstring_init becomes dstring_new_init (oops! I just did it again!)<br>
+   So the function names are aliases with #defines so the compiler<br>
+   writes it correctly and I can go on. <br>
+   The other aliases are MACROs to make programming with libdstring<br>
+   easier and more intuitive. <br>
+</h3>
+ 
+<h2>DSSCANF</h2>
+
+<h3>
+  Parsing a dstring to extract variable data out of it into<br>
+  ints and substrings and floats, etc. is possible with the<br>
+  dsscanf utility. It takes the same format as libc sscanf<br>
+  and indeed gcc and clang will parse the format string<br>
+  for correctness at compile time just as if it were a sscanf <br>
+  function. There is a catch, however. Just like sscanf, <br>
+  dsscanf will seg fault if you send it an output parameter<br>
+  with insufficient memory to hold the data you are trying<br>
+  to stuff into it. Most of the time it will be another dstring<br>
+  that is too small or unitialized or just a pointer with no<br>
+  memory attached. Other problems would be bad values like reading<br>
+  a negative integer into a size_t var or an 8-bit value into <br>
+  a 16-bit numerical value not initializes to zero first, leaving<br>
+  the upper 8 bits full of garbage.  <i>Sit Programmis Cauti.</i><br>
+</h3>   
+
+<h2>DSLOCAL</h2>
+
+<h3>  
+  DSLOCAL is a macro to generate localdstrings that are<br>
+  automatically destroyed at the exit of their local <br>
+  function scope. They are allocated on the stack by<br>
+  the C runtime and so may be faster and more easy to use.<br>
+  
+  The DSLOCAL_FMT macro is functionally like the printf family: <br>
+  it  creates a localdstring either from a static<br>
+  string in quotes or with a printf format string and <br>
+  variables. gcc and clang check the format string for<br>
+  syntax just as if it were for printf. <br>
+  There is a defined MAX size of 256 bytes to save memory for localdstrings, <br>
+  but that is easily changed  by editing dstring.h <br>
+  if for some reason you need more than that for a local string<br>
+  inside a function.<br>
+</h3>
+<p>
+  Example: <br>
+</p>
+
+<font size="3">
+<pre class="prettyprint"> 
+void f()
+{ 
+  /* myName and loc_ds are automatically de-allocated when f returns. */
+  localdstring myName = DSLOCAL("Christopher");
+  localdstring loc_ds = DSLOCAL_FMT( "RULE %d: %s never returns %s", 1 , myName, "localdstrings"); 
+}
+
+</pre>
+</font>
+
+<hr>
+
+<h2>BUGS</h2>
+
+<h3>
+   It's plain C, so the code is subject to bad input and especially<br>
+   null pointer exceptions. I have tried to make it null pointer<br>
+   proof as much as nominally possible, but using a pointer before<br>
+   it has been initialized or after it has been freed still gums<br>
+   up the works royally in any C program. <br>
+   Be careful about assigning stray pointers at the beginning <br>
+   and the end of the life or your dstrings, especially containers. <br>
+   The size_t data is there to protect the programmer from mistakes <br>
+   we all make, so use them. <br>
+   Dropped pointers can leave massive memory leaks<br>
+   until the program is over or cause crashes. The library has<br>
+   been tested extensively for this, and internally it remains<br>
+   orthogonal and integral as regards to memory and pointers<br>
+   in almost all cases, even up to very large dstring lengths. <br>
+<p>
+   Localdstrings ,if used correctly, always get cleaned up <br>
+   automatically. 
+<p>Gcc and clang do some wily optimizations, <br>
+  but should not destroy data before the last access <br>
+  to a dstring in the code execution path.<br>
+<p>
+   Most crashes occur on two operations:<br>
+   writing to a pointer that is uninitialized or points to <br>
+   some random unexpected memory location, often off-limits to<br>
+   the program; <br>
+   or writing past the boundaries of an array.<br>
+<p>
+   An other time is when the contents of the string within<br>
+   the dstring contain errors, and a libc function like <b>strlen</b> --<br>
+   <i>(a little utility with a big temper)</i>, segfaults on its own.<br>
+</h3>
+<p>
+<p>   
+<h2>MODIFYING DSTRINGS</h2>
+
+<h3>	  
+   The dst struct is designed to be accessed by the string part<br>
+   and then pointer arithmetic is used to get a pointer handle<br>
+   to the structure itself. If the relationship memory-wise is<br>
+   altered, all hell will break loose and the program will crash, hard.<br>
+   A compromise is made between facility and memory security<br>
+   by casting a pointer out of the char* internally to the <br>
+   address of the beginning of the struct.<br>
+<p>
+   A hackish design  <i>(to facilitate code-reuse)</i> was implemented<br>
+   to the dst struct by adding 8 bytes of filler to the struct <br>
+   for 32-bit compilers. <br>
+   This is wasted space, ( unless you find a use for it ) <br>
+   but it allows the dst struct to be uniform in size<br>
+   across 32-bit and 64-bit machines, despite the difference <br>
+   in byte size of 4 bytes for 32-bit and 8 bytes for 64-bit <br>
+   of the size_t  <i>(unsigned integer)</i>. <br> 
+<font size="2" ><i>This should add no slow-down, <br>
+    indeed it may make it faster on pentium-class 32-bit machines.</i></font>
+<p>   
+   DSTRING_MAX has been set to a 1GB limit<br>
+   which is within both architecture's size_t limit.<br>
+   A dstring will not usually need to be that big. <i>(I hope!)</i>.<br>
+</h3>
+<p>
+<font size="4">
+</font></p><pre class="prettyprint prettyprinted"><font size="4"><span class="pln">   </span><span class="kwd">struct</span><span class="pln"> dst  </span><span class="pun">*</span><span class="pln">d </span><span class="pun">=</span><span class="pln"> </span><span class="pun">(</span><span class="kwd">struct</span><span class="pln"> dst</span><span class="pun">*)</span><span class="pln"> </span><span class="pun">(</span><span class="pln">ds </span><span class="pun">-</span><span class="pln"> </span><span class="kwd">sizeof</span><span class="pun">(*</span><span class="pln">d</span><span class="pun">));</span></font></pre><font size="4"> 
+</font>
+<h3>  
+   gives the necessary information to the compiler and the<br>
+   tiny runtime facilities of the malloc/realloc/free infrastructure<br>
+   to properly address the struct without a prior reference to its <br>
+   beginning in memory. This works because the char array is at<br>
+   the tail end of the struct. <br>
+   You then can access the struct's members by name: <br>
+   (d-&gt;len , d-&gt;free , and d-&gt;str ).<br>
+<p>
+   Debuggers do not like this: it looks to their algorithms as<br>
+   if you are exceeding the bounds of objects, and they give some<br>
+   access errors if too many safeguards are turned on, but <br>
+   actually you are not doing so. <br>
+   The idea of addressing an object from an inside member <br>
+   is novel, and not-at-all recommended unless it offers a large <br>
+   benefit. <br>
+</p><p>
+   To examine a (struct dst) in a debugger such as gdb,
+   address it like this: 
+</p></figure></h3>
+<font size="4" color="brown">
+<samp>
+<pre>      (gdb) p a
+      $1= (dstring) 0x603020 "ABCDE"
+      (gdb) p (struct dst*) (a-16) 
+      $2 = (struct dst *) 0x603010
+      (gdb) p <b>(struct dst</b>) (a-16)
+      $3 = {len = 5, free = 27, str = 0x603020 "ABCDE"}
+      (gdb) 
+   
+</pre>
+</samp>
+</font>
+
+<h3>    
+   In this case the benefit is that you can address<br>
+   and use the structs as an ordinary c-style strings and<br>
+   all the libc string ops work as usual.<br>
+<br>
+   The (ds - sizeof(*d)) idiom works for both 32 and 64 bit<br>
+   architectures and should be scalable to other kinds of <br>
+   structs such as binary-strings or wide_char strings or<br>
+   (unsigned char), where the specific case of (ds - 16) <br>
+   would not. It is also possible to add data members after the<br>
+   char[] without penalty and access them from the struct,<br>
+   but caution needs to be used because one could find <br>
+   oneself in a little maze of twisting passages, all different.<br>
+</h3>
+
+<h2>TUTORIAL</h2>
+<h3>
+A brief beginner's tutorial is provided:
+<a href="tutorial.html"> dstring tutorial </a> . 
+</h3>
+   
+<h2>IMPROVEMENTS</h2>
+
+<h3>
+   There is always room for improvement in code. <br>
+   Experiment; stumble; break; repair; leap forward. <br>
+   Get better by doing, by impact.<br>
+   I appreciate suggestions and/or criticisms from users and<br>
+   experts and welcome submissions. Flames go to <i>/dev/null</i>.<br>
+   happy coding!      <br>
+  
+ Enjoy!    <br>
+</h3>
+</div>
+<p>
+<div>
+<table>
+  <tbody><tr>
+    <td><a href="README.html"> Readme </a> </td>
+    <td><a href="dstringsAPI.html"> API </a> </td>
+    <td><a href="dstring_utilsAPI.html"> Utils </a></td>
+    <td><a href="source/index.html"> Source </a></td>
+  </tr>
+ </tbody>
+</table>
+</div>   
+<p>
+</body>
+</html>

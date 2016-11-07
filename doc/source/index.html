@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
+<meta name="description" content="dstring.h documentation">
+<meta name="keywords" content="dstrings, programming, dynamic strings">
+<meta name="author" content="Chris Reid">
+
+<title>dstring source documentation</title>
+
+<link rel="stylesheet" type="text/css" href="light.css" title="preferred">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+
+<style>
+.outer {
+        display: inline-block;
+        white-space: nowrap;
+}
+.nav {
+      float:left;
+      height:100%
+}
+.rightside {
+      float:right;
+ }
+</style>
+
+</head>
+
+<body>
+
+<div id="content">
+
+<img src="../dstrings.png" alt="dstrings" style="font-family:Lucida Sans Unicode" color="#697c52" font-size="30px"> </img>
+
+<div id="author" align="right">
+<table>
+  <tbody>
+    <tr>
+      <td>Programmer:</td>
+      <td>Chris Reid</td> 
+    </tr>
+    <tr>
+      <td>Year:</td>
+      <td>2015</td> 
+    </tr>
+    
+    <tr>
+      <td>Version:</td>
+      <td>1.5</td> 
+    </tr>
+    
+    <tr>
+      <td>contact:</td>
+      <td>spikeysnack@gmail.com</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div id="outer" align="center">
+  <div id="nav" align="left">
+    <ul>
+      
+      <li><A href="dstring.h.html">dstring.h</A>
+	
+      <li><A href="dstring.c.html">dstring.c </A>
+      
+      <li><A href="localdstring.h.html">localdstring.h </A>
+      
+      <li><A href="dstring_utils.h.html">dstring_utils.h </A>
+      
+      <li><A href="dstring_utils.c.html">dstring_utils.c </A>
+      
+      <li><A href="dstringlist.h.html">dstringlist.h</A>
+      
+      <li><A href="dstringarray.h.html">dstringarray.h </A>
+      
+      <li><A href="dstring_llist.h.html">dstring_llist.h </A>
+      
+      <li><A href="file_utils.h.html">file_utils.h </A>
+      
+      <li><A href="key_utils.h.html">key_utils.h </A>
+    </ul>
+  </div> 
+  <div id="rightside" align="center">
+    <div id="sourcecontent" align="left">
+      <font size="4" color="blue"> Welcome to the Source! click the links to view colored source listings. </font> 
+    </div>
+  </div>    
+  
+</div>
+
+
+<script lang="javascript">
+  $(function () {
+  $('#nav ul li A').on('click', function (e) {
+  e.preventDefault();
+  var page = $(this).attr('href');
+  $('#sourcecontent').load(page);
+  });
+  });
+</script>
+
+<div>
+<table>
+  <tbody><tr>
+    <td><a href="../README.html"> Readme </a> </td>
+    <td><a href="../dstringsAPI.html"> API </a> </td>
+    <td><a href="../dstring_utilsAPI.html"> dstring utils API </a></td>
+  </tr>
+ </tbody>
+</table>
+</div>   
+
+</body>
+</html>

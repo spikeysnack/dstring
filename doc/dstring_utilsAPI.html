@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en-US" >
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
+<meta name="description" content="dstrings API">
+<meta name="keywords" content="dstrings,programming,dynamic strings">
+<meta name="author" content="chris" >
+
+<title>dstring_utils API</title>
+<link rel="stylesheet" type="text/css" href="light.css" title="preferred">
+<link rel="alternate stylesheet" type="text/css" href="evening.css" title="alternate1">
+<link rel="stylesheet" type="text/css" href="prettify.css">
+</head>
+
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+
+<body  style="font-family:Trebuchet MS" style="color:#697c52" style="background-color:#E6E6FA">
+
+<div id="content">
+<img src="dstrings.png" alt="dstrings" style="font-family:Lucida Sans Unicode" color="#697c52" font-style="" italic="" font-size="30px">
+
+<h1>
+DSTRINGS <br> 
+A Dynamic Strings Library
+</h1>
+<p>
+</p><div>
+<table>
+  <tbody><tr>
+    <td>Programmer:</td>
+    <td>Chris Reid</td> 
+  </tr>
+  <tr>
+    <td>Year:</td>
+    <td>2015</td> 
+  </tr>
+
+  <tr>
+    <td>Version:</td>
+    <td>1.5</td> 
+  </tr>
+
+  <tr>
+    <td>contact:</td>
+    <td>spikeysnack@gmail.com</td>
+  </tr>
+</tbody></table>
+</div>
+
+<br>
+<div><br>
+<br>
+<center><font size="4"><b>string utilities not built-in to C</b></font></center>
+<br>
+
+
+<h1>DSTRING UTILS</h1>
+<pre>
+   An example string manipulation utility is provided: <i><b>dstring_utils</b></i>.
+   It is both a string api and a program for working with strings.
+   It provides some string functions missing from stdlib that
+   are traditionally re-written by every programmer for every
+   program. (<i>Why?</i>) <p>Most are part of other newer languages' base apis 
+    by now anyway, like find, find & replace, remove a word from string, 
+    quote & unquote, chomp ,slice,truncate, trim, pad etc. 
+    I encourage creativity in discovering new and useful functions 
+    to round out the functionalities.
+</pre>
+
+<h1>USAGE</h2>
+<code>
+Place <font color="blue"> #include <i>"dstring.h"</i></font> in your C file.<br>
+Include <i>libdstring.so</i> in your compile linkage <br>
+Makefile entry example:<br>
+</code>
+<pre class="prettyprint">
+replace_test:   libdstring.so                                                                                                    
+        $(CC) $(CFLAGS)   -o replace_test  replace_test.o  -L $(LIBINCLUDES)  $(LIBPATH)  $(LIBS)
+</pre>
+<p>
+
+<h1>API</h1>
+<p>
+<h2>prepend / append</h2>
+<p>
+
+<b>prepend</b>
+<p>
+A string is added to the beginning of a string.
+<pre class="prettyprint">
+dstring prepend ( const dstring in , const dstring beg )
+</pre>
+<p>
+
+<b>append</b>
+<p>
+A string is added to the end of a string. 
+<pre class="prettyprint">
+dstring append ( const dstring in , const dstring end )
+</pre>
+<p>
+
+
+<h2> check_spaces </h2>
+<p>
+ Check if the word is surrounded by spaces. <br>
+ YES means the word is surrounded <br>
+ on both sides by a space character.<br>
+ note: uses cstrings because of no modification.<br>
+ cstrings or dstrings are the same to the compiler: (char*), <br>
+ but I use a different name to remind me that<br>
+ I am dealing with separate objects. <br>
+<p>
+
+<pre class="prettyprint">
+bool check_spaces( const dstring in , const dstring match );
+</pre>
+<p>
+
+<h2> is_sentence </h2>
+check for capital first letter and period at end<br>
+<pre class="prettyprint">
+bool is_sentence( const dstring in );<br>
+</pre>
+<br>
+
+<h2> quote/ unquote </h2>
+<p>
+
+<b>is_quoted</b> 
+<p>
+check if string is surrounded by quotes
+<pre class="prettyprint">
+bool is_quoted( const dstring in );
+</pre>
+<p>
+
+<b>quote</b>
+<p>
+returns a copy of a string with<br> 
+double-quotes around it, <br>
+unless it is already quoted then a straight copy. <br>
+
+<pre class="prettyprint">
+dstring quote( const dstring in );<br>
+</pre>
+<p>
+
+<b>unquote</b>
+<p>
+remove quote before and after
+<pre class="prettyprint">
+dstring unquote( const dstring in );<br>
+</pre>
+<p>
+
+<h2>chomp</h2>
+<p>
+Carriage returns and newline characters<br>
+are removed throughout the whole string.<br>
+The null char <i>'\0'</i> at the end is retained.<br>
+<pre class="prettyprint">
+dstring chomp( const dstring in );<br>
+</pre>
+<p>
+
+<h2> padding </h2>
+<p>
+<b>pad</b>
+pad string(right) with n ' ' (space) characters 
+<pre class="prettyprint">
+dstring pad( const dstring in, int n );<br>
+</pre>
+<p>
+
+<b>pad_char</b>
+pads (right) a string with a printable character <em>c</em>,  <em>n</em> times.
+<pre class="prettyprint">
+dstring pad_char( const dstring in,  char c, int n );<br>
+</pre>
+<p>
+
+<b>rm_dblspaces</b>
+<p>
+Remove runs of spaces of two or more.<br>
+The string is scanned until all <br>
+double spaces are removed.<br>
+<pre class="prettyprint">
+dstring rm_dblspaces( const dstring in );<br>
+</pre>
+<p>
+
+<b>truncate_string</b>
+returns a copy of a  dstring cut off at n chars. <br>
+<font size="1"> 
+( <i>truncate</i> is a file length function in unistd.h
+so truncate_string  will have to serve as a function name.) 
+</font>
+
+<pre class="prettyprint">
+dstring truncate_string( const dstring in , int n );<br>
+</pre>
+<p>
+
+<h2>Finding</h2>
+
+find a substring and return it.
+find returns the string from the first match to the end,
+or <font color="magenta">NULL</font> if not found.
+<p>
+
+<b>find</b>
+<pre class="prettyprint">
+dstring find( const dstring ds , const cstring match );<br>
+</pre>
+<p>
+find a substring and return the rest of the  string after but
+not including the match.
+<pre class="prettyprint">
+dstring dstring_after( const dstring ds , const cstring match );<br>
+</pre>
+<p>
+
+<b>dstring_before</b>
+find a substring and return the substring before it.
+<pre class="prettyprint">
+dstring dstring_before( const dstring ds , const cstring match );<br>
+</pre>
+<p>
+
+<h2> Trimming </h2>
+<p>
+
+<b>rtrim</b>
+<p>
+
+right trim returns string from beginning to match, exclusive.
+<pre class="prettyprint">
+dstring rtrim( const dstring in, const cstring match );<br>
+</pre>
+<p>
+
+<b>ltrim</b>
+left trim returns string from  match to end, exclusive.
+<pre class="prettyprint">
+dstring ltrim( const dstring in, const cstring match );<br>
+</pre>
+<p>
+
+<b>trim</b>
+<p>
+
+Trims a match from either end or both if present.
+<pre class="prettyprint">
+dstring trim( const dstring in, const cstring match );<br>
+</pre>
+<p>
+
+<h2>Capitalization</h2>
+<p>
+
+<b>all_caps</b>
+returns a copy of a string with every letter capitalized.
+<pre class="prettyprint">
+dstring all_caps( const dstring in );<br>
+</pre>
+<p>
+
+<b>uncapitalize</b>
+returns a copy of a string with every letter lowercase
+<pre class="prettyprint">
+dstring uncapitalize( const dstring in );<br>
+</pre>
+<p>
+
+<b>title_case</b>
+<p>
+
+Capitalise every word in the string.<br>
+If <b>USE_SMALL_WORDS</b> is defined then <br>
+the words in the small_words list are not capitalized. <br>
+<font size="2" >You may add <i>-D USE_SMALL_WORDS </i> on the compilation line<br>
+or as a preprocessor directive in the source code, as well.<b>
+</font>
+<p>
+
+<font size="2"> current small word list: </font>
+<p>
+<code>
+<font size="2" color="blue">
+ a, an, and, as, at, but, by,<br> 
+ en, for, if, in, is,<br>
+ of, on, or, the, to, via, vs <br>
+</font>
+<font size="1" color="darkmagenta">
+Exceptions to  "small words": Short verb forms such as is, are, and be <br>
+must always be capitalized within titles, regardless of their location. 
+</font>
+<p>
+</code>
+<font size="2" color = "darkbrown" ><i>from : The New York Times Manual of Style</i> </font>
+
+
+<pre class="prettyprint">
+dstring title_case( const dstring in );<br>
+</pre>
+<p>
+
+<h2>Insert/ Remove</h2>
+<p>
+
+<b>insert</b>
+inserts a string in the middle of another string <br>
+at <i>pos</i> letters in. The string is split and the   <br>
+end part is attached after the inserted string.   <br>
+ 
+<pre class="prettyprint">
+dstring insert( const dstring in, const cstring s, int pos );<br>
+</pre>
+<p>
+
+<b>insert_word</b>
+Like insert above, but inserts spaces on both sides of the word.
+ 
+<pre class="prettyprint">
+dstring insert_word( const dstring in, dstring ins, int pos );<br>
+</pre>
+<p>
+
+<b>remove_word</b>
+<p>
+removes a word from a string and resizes to proper size. <br>
+if the string is a sentence, and the words we want to remove <br>
+is at the end, we check for commas and periods  and chop them out.<br>
+<font size="1"> <i>(there is already a remove function in stdio.h that deletes
+files, so remove_word will have to do.)</i> </font><br>
+
+<pre class="prettyprint">
+dstring remove_word( const dstring in, const cstring _match );<br>
+</pre>
+<p>
+
+<b>replace_word</b>
+<p>
+The word is searched for a match,<br>
+and the match is replaced with the new string. <br>
+The string is split, and the end is reattached <br>
+after the insert, with according lengthening or shortening. <br>
+
+<pre class="prettyprint">
+dstring replace_word( const dstring in , const cstring match, const cstring replacement );<br>
+</pre>
+<p>
+</div>
+<p>
+                                                                                                                                                         
+<div>                                                                                                                                                        
+<table>
+  <tbody>
+  <tr>
+    <td><a href="README.html"> Readme </a> </td>
+    <td><a href="dstringsAPI.html"> API </a> </td>
+    <td><a href="dstring_utilsAPI.html"> Utils </a></td>
+    <td><a href="source/index.html"> Source </a></td>
+  </tr>
+ </tbody>
+</table>
+</div>
+<p> 
+
+</body>
+
+</html>

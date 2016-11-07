@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# this script take a .c or .h file (C language) and formats it
+# using googles prettify script and a local css file.
+
+AUTHOR="Chris Reid"
+DESC="${1} documentation"
+KEYWORDS="dstrings, programming, dynamic strings"
+EMAIL="<spikeysnack@gmail.com>"
+CSS="light.css"
+ALTCSS="evening.css"
+
+PRETTIFY="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"
+
+
+# prints out an html header
+function header()
+{
+cat <<EOF1
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta charset="UTF-8">
+<meta name="description" content="${DESC}">
+<meta name="keywords" content="${KEYWORDS}">
+<meta name="author" content="${AUTHOR}">
+
+<title>
+EOF1
+echo "$1"
+cat <<EOF2
+</title>
+
+<link rel="stylesheet" type="text/css" href="${CSS}" title="preferred">
+<link rel="alternate stylesheet" type="text/css" href="${ALTCSS}" title="alternate1">
+<link rel="stylesheet" type="text/css" href="prettify.css">
+</head>
+
+<script src="${PRETTIFY}"></script>
+
+<body style="font-family:Lucida Console" style="color:#697c52" style="background-color:#E6E6FA">
+<div id="content">
+<code>
+<pre class="prettyprint">
+<!--.h or .c file contents starts here -->
+EOF2
+}
+
+# prints out an html footer
+function footer()
+{
+cat<<EOF
+<!--.h or .c file contents ends here -->
+</pre>
+</code>
+</div>   
+<p>
+</body>
+</html>
+
+<!-- end -->
+
+EOF
+}
+
+# converts all '<' and '>' t
+# to html less-than and greater-than entities
+function ltgt()
+{
+    set -f
+    OLDIFS=$IFS
+    IFS="$(printf "\r")"                                                                                                                                       
+    mapfile -t thetxt < "$1"
+    
+    for line  in ${thetxt[@]} 
+    do
+	line=${line//</&lt;}
+	line=${line//>/&gt;}
+	echo "$line"
+    done
+    IFS=$OLDIFS
+    set +f
+}
+
+
+
+# get file extension
+ext="${1##*.}"
+fname="${1%.*}"
+
+# check ext and do it if .h or .c
+
+if [ "X${ext}" == "Xh" ] || [ "X${ext}" == "Xc" ] ; then
+  
+    header "${1}"  >   "${1}.html" #output header
+    ltgt   "${1}"  >>  "${1}.html" #output translated C text
+    footer         >>  "${1}.html" # outpt footer
+
+else
+    echo "only works for C files" 
+ 
+fi
+
+
+
+
