@@ -1,3 +1,5 @@
+![Dstrings](doc/dstrings.png?raw=true  "dstrings")
+
 # Dstrings  
 ##	  A Dynamic Strings Library
 
