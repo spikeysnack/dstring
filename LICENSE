@@ -1,0 +1,5 @@
+LICENSE
+        Free for all C uses. No guarantees implied, or given.
+        The file dstring_llist.h is based upon the linux kernel
+        linked list code and is GPL freeware.
+
