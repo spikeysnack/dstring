@@ -105,12 +105,14 @@ _INLINE_ dstring dstringarray_match_len ( dstringarray dsa , const char* str, si
 _INLINE_ int dstringarray_cull ( dstringarray dsa );
 
 /* utility macros */
-#define DSARRAY_PRINT(DSA) do { int n; \
-    for(n=0; n< DSA->size; n++) {                           \
+#define DSARRAY_PRINT(DSA) do { int n;                      \
+    for(n=0; n<DSA->size; n++) {                            \
       printf("%d:",n);                                      \
-      if (DSA->arr[n]) printf("\t%s", DSA->arr[n]);         \
-      if ( ! rindex( DSA->arr[n], '\n') ) printf("\n");}    \
-    }while(0)
+      if (DSA->arr[n]) { printf("\t%s", DSA->arr[n]);	    \
+      if ( ! rindex( DSA->arr[n], '\n') ) printf("\n"); }   \
+    }    						    \
+  }while(0)
+
 
 #define PRINT_DSARRAY DSARRAY_PRINT
 
@@ -490,7 +492,6 @@ _INLINE_ dstringarray dstringarray_from_dstring( const dstring ds , cstring deli
   size_t ilen, count, entries, strsz; 
   size_t arraysize = 0;
 
-
   if (! ds) goto fin;
 
   if (! delim ) delim = " ";
@@ -504,6 +505,11 @@ _INLINE_ dstringarray dstringarray_from_dstring( const dstring ds , cstring deli
   entries = 0;
   count   = 0;
 
+
+  // Edge case: the delim is last readable char (like a .)
+  if(ds[ilen-1] == delim[0] ){ ds[ilen-1] = '\0'; }
+
+  
   while( count < ilen)
 	{
 	  c = tmp[count];
@@ -511,17 +517,14 @@ _INLINE_ dstringarray dstringarray_from_dstring( const dstring ds , cstring deli
 	  count++;	  
 	}
 
-
   arraysize = entries+1;
-  //  arraysize =  (arraysize%16)? arraysize + (16 - (arraysize%16)): arraysize ;
-  
+     
   dsa = new_dstring_array(arraysize);
 
   /* string pointers */
   startp  = (char*)tmp;
   endp = (char*)tmp;
   count = 0;
-
 
   while ( count++ <= arraysize )
 	{
@@ -530,17 +533,19 @@ _INLINE_ dstringarray dstringarray_from_dstring( const dstring ds , cstring deli
 	  while(*endp != '\0') endp++;
 	  
 	  strsz = endp - startp;
-
+	  
 	  str = startp;
-
-	  if( strsz)
-		{
-		  dnew = dstring_new_init(str, strsz);
-		  /* add items to array */
-		  dstring_add( dsa , dnew ); 
-		  /* skip null char */
-		  endp++;
-		} // if
+	  
+	  	  
+	  if( strsz > 0)
+	    {
+	      
+	      dnew = dstring_new_init(str, strsz);
+	      /* add items to array */
+	      dstring_add( dsa , dnew );		    
+	      /* skip null char */
+	      endp++;
+	    } // if
 	  dnew = NULL;   
 	} // while
 	  

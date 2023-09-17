@@ -5,8 +5,8 @@
 /* COPYRIGHT: 2015- Chris Reid                 */
 
 
-#define CHANGECASE_VERSION "1.0"
-#define CHANGECASE_DATE "21 Oct 2015"
+#define CHANGECASE_VERSION "1.8"
+#define CHANGECASE_DATE "16 Sep 2023"
 
 #include <stdio.h>
 #include "dstring.h"

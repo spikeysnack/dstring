@@ -28,16 +28,16 @@ dstringarray reverse_array(dstringarray dsa);
 
 /********************************************************/
 const cstring cs[] = { 
-                   "---------- Ice and Fire ------------",
-		   "                                    ",
-		   "fire, in end will world the say Some",
-		   "ice. in say Some                    ",
-		   "desire of tasted I've what From     ",
-		   "fire. favor who those with hold I   ",
-		   "                                    ",
-		   "... elided paragraph last ...       ",
-		   "                                    ",
-		   "Frost Robert -----------------------",
+                   "---------- Ice and Fire ------------" ,
+		   "                                    " ,
+		   "fire, in end will world the say Some" ,
+		   "ice. in say Some                    " ,
+		   "desire of tasted I've what From     " ,
+		   "fire. favor who those with hold I   " ,
+		   "                                    " ,
+		   "... elided paragraph last ...       " ,
+		   "                                    " ,
+		   "Frost Robert -----------------------" ,
 		   NULL
                  };
 
@@ -45,9 +45,10 @@ const cstring cs[] = {
 dstringarray dstringarray_from_cstringarray( const cstring csa[])
 {
   size_t n = 0;
+
   dstringarray dsa;
 
-  while ( cs[n++] );
+  while ( cs[n++] );  // length string
 
   dsa = NEW_DSARRAY(n);  
 
@@ -69,7 +70,6 @@ void revprint (cstring cs)
 {
   dstringarray dsa1 = dstringarray_from_cstring(cs, " ");
 
-  //  dstringarray dsa1 = dstringarray_from_dstring(new_dstring(cs), " ");
   size_t count = COUNT(dsa1);
     
   for( ; count ; count--)

@@ -199,18 +199,19 @@ exit(0);
 dstring loops_test( size_t sz)
 {
   dstring ds = NULL;
-  int i ;
-  char numstr[8] = {0};
+  char numstr[11] = {0};
 
   ds = new_dstring_init("", sz * 8 );
 
   printf("dstring_append(dsbig, numstr)  (%zu times )\n", sz);
   
-  for (i = 0 ; i<= sz ; i++)
+  
+  for (size_t i = 0 ; i<= sz ; i++)
    {     
-     snprintf( numstr, 8, "%d ", i );     
-     //     printf("%d  %s\n", i, numstr );
-     if ( (i % 10000) == 0 ) printf( "%d\n", i);
+     snprintf( numstr, 8, "%zu ", i );     
+
+     if ( (i % 10000) == 0 ) printf( "%zu\n", i);
+
      ds = dstring_append( ds, numstr );
    }
 

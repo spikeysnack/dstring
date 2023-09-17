@@ -6,7 +6,7 @@
 #/* COPYRIGHT: 2015- Chris Reid                 */#
 
 DEBUG=1
-
+CC := $(shell which cc)
 #CC= gcc
 #CC= clang
 

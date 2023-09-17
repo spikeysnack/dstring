@@ -6,14 +6,15 @@
 #/* COPYRIGHT: 2015- Chris Reid                 */#
 
 DEBUG=1
+CC=gcc-13
 
 #CC= gcc
 #CC= clang
 
 DEFINES= -D DSTRING
 #BASE_CFLAGS= -m32 -fstrict-aliasing -fpic  -Wno-unused-function $(DEFINES) 
-BASE_CFLAGS=  -fstrict-aliasing -fpic  -Wno-unused-function --optimize-strlen $(DEFINES) 
-DEBUG_CFLAGS= -ggdb3  -O0 -Wall -Werror  -fno-omit-frame-pointer 
+BASE_CFLAGS=  -std=c2x -fstrict-aliasing -fpic  -Wno-unused-function --optimize-strlen $(DEFINES) 
+DEBUG_CFLAGS= -std=c2x -ggdb3  -O0 -Wall -Werror  -fno-omit-frame-pointer 
 
 INCLUDES= -I..
 LIBINCLUDES= -L..

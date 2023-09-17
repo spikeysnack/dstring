@@ -5,8 +5,8 @@
 /* COPYRIGHT: 2015- Chris Reid                 */
 
 
-#define RENAME_VERSION "1.3"
-#define RENAME_DATE "19 Oct 2015"
+#define RENAME_VERSION "1.8"
+#define RENAME_DATE "16 Sep 2023"
 
 #include <stdio.h>
 

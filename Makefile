@@ -4,15 +4,18 @@
 #/* AUTHOR:  Chris Reid <spikeysnack@gmail.com> */#
 #/* LICENSE: Free for all purposes              */#
 #/* COPYRIGHT: 2015- Chris Reid                 */#
+#SHELL :=/bin/sh
 
-DEBUG=1
+DEBUG := 1
 
-CC= gcc
+CC := $(shell which cc)
+
 #CC= clang
+
 
 DEFINES= -D DSTRING
 #BASE_CFLAGS= -m32 -fstrict-aliasing -fpic  -Wno-unused-function $(DEFINES) 
-BASE_CFLAGS=  -fstrict-aliasing -fpic  -Wno-unused-function $(DEFINES) 
+BASE_CFLAGS=  -std=c2x -fstrict-aliasing -fpic  -Wno-unused-function $(DEFINES) 
 DEBUG_CFLAGS= -ggdb3  -Wall -Werror  -fno-omit-frame-pointer  
 INCLUDES= $(PWD)
 LIBINCLUDES= $(PWD)

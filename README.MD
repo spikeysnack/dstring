@@ -4,8 +4,8 @@
 ##	  A Dynamic Strings Library
 
 ##### Programmer: [Chris Reid](mailto:spikeysnack@gmail.com)
-##### Year	    2016
-##### Version     1.6
+##### Year	  2023
+##### Version     1.8
 
 
 ### INTRO
